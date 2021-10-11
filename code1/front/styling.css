@@ -1,0 +1,15 @@
+
+canvas#canvas{
+  height: 80%;
+  width: 80%;
+  margin: 5% 10%;
+}
+
+.info_yellow{
+  width: 80%;
+  margin: auto 8%;
+  padding: 2%;
+  background: #eeee77;
+  border: solid 1px #dddd66;
+  border-radius: 5px;
+}
