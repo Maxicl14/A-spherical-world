@@ -8,7 +8,7 @@ window.addEventListener("load", function onLoad (evt) {
   // itself, because it only needs to run once.
   window.removeEventListener(evt.type, onLoad, false);
   const myCanvas = new Canvas('canvas');
-  if (myCanvas.WebGLAvailable){
+  if (!myCanvas.WebGLAvailable){
     // Show fallback message
     let fallbackElement = document.getElementById('WebGL_Fallback');
     fallbackElement.hidden = false;
