@@ -1,4 +1,7 @@
 
+import vertexShader as vertexShaderSource from '../shaders/vertexShader.js';
+import fragmentShader as fragmentShaderSource from '../shaders/fragmentShader.js';
+
 class Canvas{
   constructor(canvas_HTML_ID){
     this.canvas = document.getElementById(canvas_HTML_ID);
@@ -12,8 +15,14 @@ class Canvas{
     // Stores references to meshes that were input into the GPU
     // form of list item: {meshID: __, vertexBufferRef: ___ , indexBufferRef: ____ }
     this.meshBuffers = [];
+
+    // Ref to shader program (to be made)
+    this.program;
+
   }
+
   getContext(){
+    // Sets up this.gl or returns false if unable to.
     // Try to access WEB GL
     this.gl = canvas.getContext("webgl");
     // Report back if you can't get webgl
@@ -63,6 +72,9 @@ class Canvas{
   }
 
   drawObject(meshID, size, pvuw){
+    // Draws the object using meshID.
+    // Returns false if mesh not found.
+
     // Find buffers to use
     // using linear search
     let found = false;
@@ -81,18 +93,89 @@ class Canvas{
     // Mesh was found if here
 
     // bind the buffer containing the indices
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, the_Mesh.indexBufferRef);
+    this.gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, the_Mesh.indexBufferRef);
 
-    var primitiveType = gl.TRIANGLES;
-    var offset = 0;
-    // var count = 6;
+    let primitiveType = gl.TRIANGLES;
+    let offset = 0;
+    // Number of vertices
+    let count = the_Mesh.indexBufferRef.length;
+    let indexType = gl.UNSIGNED_SHORT;
+    this.gl.drawElements(primitiveType, count, indexType, offset);
+
     // gl.drawArrays(primitiveType, offset, count);
-    // var indexType = gl.UNSIGNED_SHORT;
-    // gl.drawElements(primitiveType, count, indexType, offset);
+
+    // Success
     return true;
   }
 
+  // ===========================================================================//
+  // Thank you webglfundamentals.org for the lovely tutorials and boilerplate.  //
+  // ===========================================================================//
 
+  /*
+  * Creates and compiles a shader.
+  *
+  * @param {string} shaderSource The GLSL source code string for the shader.
+  * @param {number} shaderType The type of shader, VERTEX_SHADER or
+  *     FRAGMENT_SHADER.
+  * @return {!WebGLShader} The shader.
+  */
+  compileShader(shaderSource, shaderType) {
+
+    // Get rendering context
+    let gl = this.gl;
+
+    // Create the shader object
+    var shader = gl.createShader(shaderType);
+
+    // Set the shader source code.
+    gl.shaderSource(shader, shaderSource);
+
+    // Compile the shader
+    gl.compileShader(shader);
+
+    // Check if it compiled
+    var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    if (!success) {
+      // Something went wrong during compilation; get the error
+      throw "could not compile shader:" + gl.getShaderInfoLog(shader);
+    }
+
+    return shader;
+  }
+
+  /*
+  * Creates a program from 2 shaders.
+  *
+  * @global {!WebGLShaderSource} vertexShader A vertex shader string.
+  * @global {!WebGLShaderSource} fragmentShader A fragment shader string.
+  * @return {!WebGLProgram} A program.
+  */
+  createProgram() {
+    let gl = this.gl;
+
+    // create a program.
+    var program = gl.createProgram();
+
+    // compile and attach the shaders.
+    // (SOURCeS IMPORTED FROM EXTERNAL FILES)
+    var vertexShader = this.compileShader(vertexShaderSource);
+    gl.attachShader(program, vertexShader);
+    var fragmentShader = this.compileShader(fragmentShaderSource);
+    gl.attachShader(program, fragmentShader);
+
+    // link the program.
+    gl.linkProgram(program);
+
+    // Check if it linked.
+    var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+    if (!success) {
+        // something went wrong with the link
+        throw ("program failed to link:" + gl.getProgramInfoLog (program));
+    }
+
+    this.program = program;
+  };
 }
 
 export { Canvas }

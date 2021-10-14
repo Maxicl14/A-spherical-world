@@ -1,0 +1,5 @@
+const vertexShader = `
+
+`;
+
+export vertexShader;
