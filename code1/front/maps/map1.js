@@ -5,16 +5,16 @@ const map = {
   },
   objects: [
     {
-      mesh: 0,
+      meshIndex: 0,
       pvuw: [
         [0.0, 1.0, 0.0, 0.0],
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.0, 1.0],
         [0.0, 0.0, 1.0, 0.0]
       ],
-      size: 0.5;
+      size: 0.5,
     }
   ]
 }
 
-export map;
+export default map;

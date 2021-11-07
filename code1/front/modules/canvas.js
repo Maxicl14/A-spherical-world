@@ -1,8 +1,12 @@
 
-import vertexShader as vertexShaderSource from '../shaders/vertexShader.js';
-import fragmentShader as fragmentShaderSource from '../shaders/fragmentShader.js';
+import {vertexShader as vertexShaderSource} from '../shaders/vertexShader.js';
+import {fragmentShader as fragmentShaderSource} from '../shaders/fragmentShader.js';
 
-class Canvas{
+class Canvas {
+
+  //____________________________________________________________________________//
+
+  // Set up canvas and make it black.
   constructor(canvas_HTML_ID){
     this.canvas = document.getElementById(canvas_HTML_ID);
     this.WebGLAvailable = this.getContext();
@@ -18,9 +22,9 @@ class Canvas{
 
     // Ref to shader program (to be made)
     this.program;
+    this.attributeReferences = {};
 
   }
-
   getContext(){
     // Sets up this.gl or returns false if unable to.
     // Try to access WEB GL
@@ -36,76 +40,6 @@ class Canvas{
   clearColour(){
     this.gl.clearColor(0.0,0.0,0.0,1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT)
-  }
-
-  add_Indexed_Mesh(ID, vertices, trianglesIndexed){
-    let gl = this.gl;
-
-    // Create and bind buffer, then add vertex coordinates.
-    const vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW)
-
-    // Create and bind index buffer.
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    // Fill the current element array buffer with data.
-    gl.bufferData(
-        gl.ELEMENT_ARRAY_BUFFER,
-        new Uint16Array(trianglesIndexed),
-        gl.STATIC_DRAW
-    );
-
-    this.meshBuffers.append({meshID: ID, vertexBufferRef: vertexBuffer , indexBufferRef: indexBuffer });
-
-    // At draw time we need to bind whatever buffer holds the indices we want to use.
-    // bind the buffer containing the indices
-    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-    // When drawing
-    // var primitiveType = gl.TRIANGLES;
-    // var offset = 0;
-    // var count = 6;
-    // gl.drawArrays(primitiveType, offset, count);
-    // var indexType = gl.UNSIGNED_SHORT;
-    // gl.drawElements(primitiveType, count, indexType, offset);
-  }
-
-  drawObject(meshID, size, pvuw){
-    // Draws the object using meshID.
-    // Returns false if mesh not found.
-
-    // Find buffers to use
-    // using linear search
-    let found = false;
-    let meshIndex = 0;
-    let the_Mesh;
-    while ((found !== true) && (meshIndex < this.meshBuffers.length)){
-      the_Mesh = this.meshBuffers[meshIndex];
-      if (the_Mesh.mesh_ID === meshID){
-        found = true
-      }
-    }
-    if (found !== true){
-      console.log("Mesh was not found. Hey, programmer! Seems like there's a little mistake!")
-      return false
-    }
-    // Mesh was found if here
-
-    // bind the buffer containing the indices
-    this.gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, the_Mesh.indexBufferRef);
-
-    let primitiveType = gl.TRIANGLES;
-    let offset = 0;
-    // Number of vertices
-    let count = the_Mesh.indexBufferRef.length;
-    let indexType = gl.UNSIGNED_SHORT;
-    this.gl.drawElements(primitiveType, count, indexType, offset);
-
-    // gl.drawArrays(primitiveType, offset, count);
-
-    // Success
-    return true;
   }
 
   // ===========================================================================//
@@ -176,6 +110,103 @@ class Canvas{
 
     this.program = program;
   };
+
+  //____________________________________________________________________________//
+
+  // TEST with invalid dictionary
+  add_AttributeReference(KeyToVarDict){
+    // in { key : Shader Variable Name String } dictionary
+    // out { key : Attribute Location Reference } dictionary
+    // saves in this.attributeReferences
+
+    // For every attribute
+    let keys = Object.keys(KeyToVarDict);
+    for (let i=0; i < keys.length; i++){
+      let key = keys[i];
+      let ShaderAttributeName = KeyToVarDict[key];
+      // Add the location of the attribute
+      this.attributeReferences[key] = this.gl.getAttribLocation(this.program, ShaderAttributeName);
+    }
+  }
+
+
+
+  add_Indexed_Mesh(ID, vertices, trianglesIndexed){
+    let gl = this.gl;
+
+    // Create and bind buffer, then add vertex coordinates.
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array(vertices),
+      gl.STATIC_DRAW
+    )
+
+    // Create and bind index buffer.
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    // Fill the current element array buffer with data.
+    gl.bufferData(
+        gl.ELEMENT_ARRAY_BUFFER,
+        new Uint16Array(trianglesIndexed),
+        gl.STATIC_DRAW
+    );
+
+    this.meshBuffers.push({meshID: ID, vertexBufferRef: vertexBuffer , indexBufferRef: indexBuffer });
+
+    // At draw time we need to bind whatever buffer holds the indices we want to use.
+    // bind the buffer containing the indices
+    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+    // When drawing
+    // var primitiveType = gl.TRIANGLES;
+    // var offset = 0;
+    // var count = 6;
+    // gl.drawArrays(primitiveType, offset, count);
+    // var indexType = gl.UNSIGNED_SHORT;
+    // gl.drawElements(primitiveType, count, indexType, offset);
+  }
+
+  findMesh(meshID){
+    // Find buffers to use
+    // using linear search
+    let found = false;
+    let meshIndex = 0;
+    let the_Mesh;
+    while ((found !== true) && (meshIndex < this.meshBuffers.length)){
+      the_Mesh = this.meshBuffers[meshIndex];
+      if (the_Mesh.mesh_ID === meshID){
+        found = true
+        return the_Mesh;
+      }
+    }
+    if (found !== true){
+      console.log("Mesh was not found. Hey, programmer! Seems like there's a little mistake!")
+      return undefined;
+    }
+  }
+
+
+  //____________________________________________________________________________//
+
+  drawObject(beforeDraw, numElementsToDraw){
+
+    // Call the requested function to link correct buffers
+    beforeDraw(this.gl, {attributeReferences: this.attributeReferences});
+
+    let primitiveType = gl.TRIANGLES;
+    let offset = 0;
+    // Number of vertices
+    let indexType = gl.UNSIGNED_SHORT;
+    this.gl.drawElements(primitiveType, count, indexType, offset);
+
+    // gl.drawArrays(primitiveType, offset, count);
+
+    // Success
+    return true;
+  }
 }
+
 
 export { Canvas }

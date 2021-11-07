@@ -1,6 +1,6 @@
 
 class Object4D {
-  constructor(){
+  constructor(pvuw, size, model_3D){
     this.ID = ID;
     this.pvuw = pvuw;
     this.size = size;
