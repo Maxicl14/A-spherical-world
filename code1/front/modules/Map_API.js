@@ -13,6 +13,10 @@ function get_Object(objectIndex, map){
   return map.objects[objectIndex];
 }
 
-const Map_API = {get_Object, get_Object_mesh_index, get_Object_pvuw, get_Object_size};
+function get_Mesh_NumPoints(meshIndex, map){
+  return map.meshes[meshIndex].trianglesIndexed.length;
+}
+
+const Map_API = {get_Object, get_Object_mesh_index, get_Object_pvuw, get_Object_size, get_Mesh_NumPoints};
 
 export default Map_API;

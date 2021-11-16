@@ -17,5 +17,7 @@ window.addEventListener("load", function onLoad (evt) {
     fallbackElement.hidden = false;
   }
 
+
   const runningGame = loader(myCanvas);
+  console.log('Done')
 });

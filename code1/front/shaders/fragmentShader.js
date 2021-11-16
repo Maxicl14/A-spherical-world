@@ -1,14 +1,11 @@
 const fragmentShader = `
-  attribute vec4 coordinates;
-  varying bool closeBy;
+  precision mediump float;
+
+  varying vec4 coords;
 
   void main(){
-    if (closeBy === true){
-      z2 = coordinates.z * coordinates.z;
+      float z2 = coords.z * coords.z;
       gl_FragColor = vec4(z2, z2, z2, 1.0);
-    } else {
-      gl_FragColor = (0.0, 0.0, 0.0, 1.0);
-    }
   }
 
 `;

@@ -1,13 +1,12 @@
 const vertexShader = `
 
   attribute vec4 coordinates;
-  varying bool closeBy;
+  varying vec4 coords;
   void main() {
-    gl_Position = (coordinates.xy, 1);
-    closeBy = false;
-    if (coordinates.z*coordinates.w < 0.5){
-      closeBy = true;
-    }
+
+    gl_Position = vec4(coordinates.x, coordinates.y, coordinates.z, 1.0);
+    coords = coordinates;
+
   }
 `;
 

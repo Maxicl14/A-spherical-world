@@ -24,6 +24,8 @@ class Canvas {
     this.program;
     this.attributeReferences = {};
 
+    this.createProgram();
+    console.log('Created')
   }
   getContext(){
     // Sets up this.gl or returns false if unable to.
@@ -72,7 +74,7 @@ class Canvas {
     var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (!success) {
       // Something went wrong during compilation; get the error
-      throw "could not compile shader:" + gl.getShaderInfoLog(shader);
+      console.log( "could not compile shader:" + gl.getShaderInfoLog(shader));
     }
 
     return shader;
@@ -93,9 +95,9 @@ class Canvas {
 
     // compile and attach the shaders.
     // (SOURCeS IMPORTED FROM EXTERNAL FILES)
-    var vertexShader = this.compileShader(vertexShaderSource);
+    var vertexShader = this.compileShader(vertexShaderSource, this.gl.VERTEX_SHADER);
     gl.attachShader(program, vertexShader);
-    var fragmentShader = this.compileShader(fragmentShaderSource);
+    var fragmentShader = this.compileShader(fragmentShaderSource, this.gl.FRAGMENT_SHADER);
     gl.attachShader(program, fragmentShader);
 
     // link the program.
@@ -173,13 +175,15 @@ class Canvas {
     // using linear search
     let found = false;
     let meshIndex = 0;
-    let the_Mesh;
+    let the_Mesh = {};
     while ((found !== true) && (meshIndex < this.meshBuffers.length)){
       the_Mesh = this.meshBuffers[meshIndex];
-      if (the_Mesh.mesh_ID === meshID){
+      debugger;
+      if (the_Mesh.meshID === meshID.toString()){
         found = true
         return the_Mesh;
       }
+      meshIndex = meshIndex + 1;
     }
     if (found !== true){
       console.log("Mesh was not found. Hey, programmer! Seems like there's a little mistake!")
@@ -193,13 +197,15 @@ class Canvas {
   drawObject(beforeDraw, numElementsToDraw){
 
     // Call the requested function to link correct buffers
-    beforeDraw(this.gl, {attributeReferences: this.attributeReferences});
+    beforeDraw(this);
 
-    let primitiveType = gl.TRIANGLES;
+    let primitiveType = this.gl.TRIANGLES;
     let offset = 0;
     // Number of vertices
-    let indexType = gl.UNSIGNED_SHORT;
-    this.gl.drawElements(primitiveType, count, indexType, offset);
+    let indexType = this.gl.UNSIGNED_SHORT;
+    debugger;
+    this.gl.drawElements(primitiveType, numElementsToDraw, indexType, offset);
+
 
     // gl.drawArrays(primitiveType, offset, count);
 

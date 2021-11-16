@@ -19,33 +19,35 @@ function loader(Canvas){
   let size = Map_API.get_Object_size(0, map)
   let pvuw = Map_API.get_Object_pvuw(0, map)
 
+  Canvas.add_AttributeReference({
+    'coordinates': 'coordinates'
+  })
+
   // Try to find mesh in Canvas object
   let meshBufferLocations = Canvas.findMesh(meshIndex);
 
   if (meshBufferLocations){
     // Do this before drawing
-    function UnifromsAttribsAtDraw(gl, {attributeReferences}){
-      gl.bindBuffer(gl.ARRAY_BUFFER, meshBufferLocations.vertexBufferRef);
-      gl.enableVertexAttribArray(attributeReferences['coordinates']);
-      gl.vertexAttribPointer(attributeReferences['coordinates'], 4, gl.FLOAT, false, 0, 0);
+    function UnifromsAttribsAtDraw(canvasThis){
+      //canvasThis.gl.bindBuffer(gl.ARRAY_BUFFER, meshBufferLocations.vertexBufferRef);
+      canvasThis.gl.enableVertexAttribArray(canvasThis.attributeReferences['coordinates']);
+      canvasThis.gl.vertexAttribPointer(canvasThis.attributeReferences['coordinates'], 4, gl.FLOAT, false, 0, 0);
 
       // bind the buffer containing the indices
       // this.gl.bindBuffer(gl.ARRAY_BUFFER, the_Mesh.vertexBufferRef);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshBufferLocations.indexBufferRef);
+      canvasThis.gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshBufferLocations.indexBufferRef);
+      debugger;
     }
 
     // Draw the object
-    Canvas.drawObject(UnifromsAttribsAtDraw, meshBufferLocations.trianglesIndexed.length);
+    let numPoints = Map_API.get_Mesh_NumPoints(meshIndex, map);
+    debugger;
+    Canvas.drawObject(UnifromsAttribsAtDraw, numPoints);
   }
-
+  debugger;
   // let success = Canvas.drawObject(meshIndex, size, pvuw)
 
-}
-
-function UnifromsAttribsAtDraw(gl, {meshBuffers}, {attributeReferences}){
-  gl.bindBuffer(gl.ARRAY_BUFFER, meshBuffers[meshIndex]);
-  gl.enableVertexAttribArray(attributeReferences['coordinates']);
-  gl.vertexAttribPointer(attributeReferences['coordinates'], 4, gl.FLOAT, false, 0, 0);
+  return true;
 }
 
 
