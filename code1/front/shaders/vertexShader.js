@@ -72,8 +72,8 @@ const vertexShader = `
 
     // Calculate screen coordinates
     // ...based on distance to screen
-    float dist = 2.0;
-    float xy_ratio = 5.0;
+    float dist = 0.5;
+    float xy_ratio = 2.0;
     float screen_x_coord = dist * ( abc.y / abc.x ) / xy_ratio;
     float screen_y_coord = dist * ( abc.z / abc.x );
     float screen_z_coord = 0.5;

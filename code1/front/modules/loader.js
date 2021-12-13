@@ -17,7 +17,6 @@ function loader(Canvas){
   // For first object on map only (0)
   let meshIndex = Map_API.get_Object_mesh_index(0, map)
   let size = Map_API.get_Object_size(0, map)
-  let Object_pvuw = Map_API.get_Object_pvuw(0, map)
   let Player_pvuw =
   [
     0.0, 0.0, 0.0, 1.0,
@@ -69,7 +68,7 @@ function loader(Canvas){
       if (dt >= frameRate){
 
         // Uniforms vary so must be recalculated every loop
-        function At_Draw_1__setUniforms(canvasThis){
+        function At_Draw_1__setUniforms(canvasThis, {Object_pvuw}){
             let gl = canvasThis.gl;
             gl.useProgram(canvasThis.program);
 
@@ -85,13 +84,27 @@ function loader(Canvas){
             gl.uniformMatrix4fv(canvasThis.uniformReferences['object_pvuw'], false, Object_pvuw);
         }
 
-        function At_Draw(canvasThis){
-          At_Draw_1__setUniforms(canvasThis)
+        let Object_pvuw;
+        Object_pvuw = Map_API.get_Object_pvuw(0, map)
+        let At_Draw = (canvasThis) => {
+          At_Draw_1__setUniforms(canvasThis, {Object_pvuw: Object_pvuw})
           At_Draw_2__setAttribs(canvasThis)
         }
-
         Canvas.drawObject(At_Draw, numPoints);
 
+        Object_pvuw = Map_API.get_Object_pvuw(1, map)
+        At_Draw = (canvasThis) => {
+          At_Draw_1__setUniforms(canvasThis, {Object_pvuw: Object_pvuw})
+          At_Draw_2__setAttribs(canvasThis)
+        }
+        Canvas.drawObject(At_Draw, numPoints);
+
+        Object_pvuw = Map_API.get_Object_pvuw(2, map)
+        At_Draw = (canvasThis) => {
+          At_Draw_1__setUniforms(canvasThis, {Object_pvuw: Object_pvuw})
+          At_Draw_2__setAttribs(canvasThis)
+        }
+        Canvas.drawObject(At_Draw, numPoints);
 
         previousTime = timeNow;
       }
