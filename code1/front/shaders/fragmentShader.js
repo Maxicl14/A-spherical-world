@@ -1,11 +1,12 @@
 const fragmentShader = `
-  precision mediump float;
+  precision highp float;
 
-  varying vec4 coords;
+  varying vec3 coords;
 
   void main(){
-      float z2 = coords.z * coords.z;
-      gl_FragColor = vec4(z2, z2, z2, 1.0);
+      float x = coords.z;
+      vec3 color = vec3((coords + 1.0)/2.0);
+      gl_FragColor = vec4(color.x, color.y, color.z, 1.0);
   }
 
 `;

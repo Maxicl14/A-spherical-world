@@ -22,9 +22,12 @@ class Canvas {
 
     // Ref to shader program (to be made)
     this.program;
+    // Locations of uniforms and attributes stored here.
     this.attributeReferences = {};
+    this.uniformReferences = {};
 
     this.createProgram();
+
     console.log('Created')
   }
   getContext(){
@@ -40,7 +43,7 @@ class Canvas {
     return true;
   }
   clearColour(){
-    this.gl.clearColor(0.0,0.0,0.0,1.0);
+    this.gl.clearColor(0.0,0.0,0.0,0.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT)
   }
 
@@ -75,6 +78,7 @@ class Canvas {
     if (!success) {
       // Something went wrong during compilation; get the error
       console.log( "could not compile shader:" + gl.getShaderInfoLog(shader));
+      return false;
     }
 
     return shader;
@@ -88,30 +92,41 @@ class Canvas {
   * @return {!WebGLProgram} A program.
   */
   createProgram() {
-    let gl = this.gl;
+    this.gl;
 
     // create a program.
-    var program = gl.createProgram();
+    var program = this.gl.createProgram();
 
     // compile and attach the shaders.
     // (SOURCeS IMPORTED FROM EXTERNAL FILES)
     var vertexShader = this.compileShader(vertexShaderSource, this.gl.VERTEX_SHADER);
-    gl.attachShader(program, vertexShader);
+    if (vertexShader === false){
+      throw 'Vertex shader not compiled.';
+    }
+    this.gl.attachShader(program, vertexShader);
+
     var fragmentShader = this.compileShader(fragmentShaderSource, this.gl.FRAGMENT_SHADER);
-    gl.attachShader(program, fragmentShader);
+    if (fragmentShader === false){
+      throw 'Vertex shader not compiled.';
+    }
+    this.gl.attachShader(program, fragmentShader);
 
     // link the program.
-    gl.linkProgram(program);
+    this.gl.linkProgram(program);
 
     // Check if it linked.
-    var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+    var success = this.gl.getProgramParameter(program, this.gl.LINK_STATUS);
     if (!success) {
         // something went wrong with the link
-        throw ("program failed to link:" + gl.getProgramInfoLog (program));
+        throw ("program failed to link:" + this.gl.getProgramInfoLog (program));
     }
 
     this.program = program;
   };
+
+  useProgram(){
+    this.gl.useProgram(this.program)
+  }
 
   //____________________________________________________________________________//
 
@@ -128,6 +143,22 @@ class Canvas {
       let ShaderAttributeName = KeyToVarDict[key];
       // Add the location of the attribute
       this.attributeReferences[key] = this.gl.getAttribLocation(this.program, ShaderAttributeName);
+    }
+  }
+
+  // TEST with invalid dictionary
+  add_UniformReference(KeyToVarDict){
+    // in { key : Shader Variable Name String } dictionary
+    // out { key : Uniform Location Reference } dictionary
+    // saves in this.uniformReferences
+
+    // For every uniform
+    let keys = Object.keys(KeyToVarDict);
+    for (let i=0; i < keys.length; i++){
+      let key = keys[i];
+      let ShaderUniformName = KeyToVarDict[key];
+      // Add the location of the uniform
+      this.uniformReferences[key] = this.gl.getUniformLocation(this.program, ShaderUniformName);
     }
   }
 
@@ -178,7 +209,6 @@ class Canvas {
     let the_Mesh = {};
     while ((found !== true) && (meshIndex < this.meshBuffers.length)){
       the_Mesh = this.meshBuffers[meshIndex];
-      debugger;
       if (the_Mesh.meshID === meshID.toString()){
         found = true
         return the_Mesh;
@@ -203,7 +233,6 @@ class Canvas {
     let offset = 0;
     // Number of vertices
     let indexType = this.gl.UNSIGNED_SHORT;
-    debugger;
     this.gl.drawElements(primitiveType, numElementsToDraw, indexType, offset);
 
 
