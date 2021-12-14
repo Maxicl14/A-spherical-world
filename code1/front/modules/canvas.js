@@ -186,7 +186,14 @@ class Canvas {
         gl.STATIC_DRAW
     );
 
-    this.meshBuffers.push({meshID: ID, vertexBufferRef: vertexBuffer , indexBufferRef: indexBuffer });
+    this.meshBuffers.push({
+      meshID: ID,
+      vertexBufferRef: vertexBuffer ,
+      indexBufferRef: indexBuffer ,
+      metadata: {
+        numPoints: trianglesIndexed.length
+      }
+    });
 
     // At draw time we need to bind whatever buffer holds the indices we want to use.
     // bind the buffer containing the indices
