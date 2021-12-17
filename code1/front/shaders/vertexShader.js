@@ -61,6 +61,10 @@ const vertexShader = `
     cosD = dot(P1, P2);
     sinD = sqrt(1.0-cosD*cosD);
     vec4 player_to_object = (P2 - (P1 * cosD))/( sinD );
+    if (dot(player_to_object, camera_pvuw[1].xyzw) < 0.0) {
+      // Facing wrong way
+      player_to_object = -player_to_object;
+    }
 
     // Calculate the 3D direction from player to object
     mat3 concatenated_axes;
@@ -72,13 +76,13 @@ const vertexShader = `
 
     // Calculate screen coordinates
     // ...based on distance to screen
-    float dist = 0.5;
+    float dist = 1.0;
     float xy_ratio = 2.0;
-    float screen_x_coord = dist * ( abc.y / abc.x ) / xy_ratio;
-    float screen_y_coord = dist * ( abc.z / abc.x );
+    float screen_x_coord = ( abc.y / (abc.x * dist) ) / xy_ratio;
+    float screen_y_coord = ( abc.z / (abc.x * dist) );
     float screen_z_coord = 0.5;
 
-    //gl_Position = vec4(c, 1.0);
+    // gl_Position = vec4(c, 1.0);
     gl_Position = vec4(screen_x_coord, screen_y_coord, screen_z_coord, 1.0);
 
     coords = coordinates;
