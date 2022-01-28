@@ -82,8 +82,8 @@ const vertexShader = `
     float screen_y_coord = ( abc.z / (abc.x * dist) );
     float screen_z_coord = 0.5;
 
-    // gl_Position = vec4(c, 1.0);
-    gl_Position = vec4(screen_x_coord, screen_y_coord, screen_z_coord, 1.0);
+    gl_Position = vec4(2.5*c, 1.0);
+    // gl_Position = vec4(screen_x_coord, screen_y_coord, screen_z_coord, 1.0);
 
     coords = coordinates;
   }

@@ -33,6 +33,7 @@ RADIUS = 0.1
 # Use iterative vertex generation method with triangles
 # Every triangle becomes four triangles
 
+# Vertex Position (3D) array. Every 3 floats are one coordinate.
 _v = [
     0.0,  0.0, RADIUS,
     0.0,  RADIUS,  0.0,
@@ -42,6 +43,7 @@ _v = [
     -RADIUS, 0.0, 0.0,
 ]
 
+# Triangles made using 3 indexed points. Indexes to _v array.
 _i = [
     0, 1, 2,
     3, 2, 1,
@@ -85,19 +87,19 @@ for hmm in range(NUM_ITERATIONS):
             midpoints.append([line[0], line[1], vN])
 
         # Now make new triangles
-        # Middle
+        # Middle Triangle
         _i_new.append(midpoints[0][2])
         _i_new.append(midpoints[1][2])
         _i_new.append(midpoints[2][2])
-        # 1
+        # Triangle 1
         _i_new.append(midpoints[0][0])
         _i_new.append(midpoints[0][2])
         _i_new.append(midpoints[2][2])
-        # 2
+        # Triangle 2
         _i_new.append(midpoints[1][0])
         _i_new.append(midpoints[1][2])
         _i_new.append(midpoints[0][2])
-        # 3
+        # Triangle 3
         _i_new.append(midpoints[2][0])
         _i_new.append(midpoints[2][2])
         _i_new.append(midpoints[1][2])

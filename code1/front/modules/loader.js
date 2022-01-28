@@ -25,7 +25,7 @@ function loader(Canvas){
     'camera_pvuw': 'camera_pvuw'
   })
 
-// Turn map objects into those ready for processing
+// Turn map objects into list of those ready for processing
   let amount_of_objects = Map_API.get_num_Objects(map);
   let processed_objects = []
   for (let i=0; i<amount_of_objects; i++){
@@ -34,6 +34,8 @@ function loader(Canvas){
     let meshBufferLocations = Canvas.findMesh(meshIndex);
     if (meshBufferLocations){
       // Only add if mesh was found
+      // map_object_index to access map properties like position
+      // meshBufferLocations to access gl vertex rendering function
       processed_objects.push({
         map_object_index: i,
         meshBufferLocations: meshBufferLocations
@@ -41,7 +43,7 @@ function loader(Canvas){
     }
   }
 
-  // Player with no mesh but as a camera
+  // Player with no mesh but acting as a camera
   let Player_pvuw =
   [
     0.0, 0.0, 0.0, 1.0,
@@ -60,7 +62,7 @@ function loader(Canvas){
       gl.useProgram(canvasThis.program);
       gl.enable(gl.DEPTH_TEST);
   }
-  // Attributes do not vary so this function can be defined once.
+  // Attributes are lists of vertices to render
   function At_Draw_2__setAttribs(canvasThis, {vertexBufferRef, indexBufferRef}){
     let gl = canvasThis.gl;
 
@@ -73,7 +75,7 @@ function loader(Canvas){
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferRef);
   }
   // Uniforms vary so must be recalculated every loop
-  // 3a: Time based Uniforms
+  // Time based Uniforms
   function At_Draw_3a__setUniforms(canvasThis, {timeFromStart}){
       let gl = canvasThis.gl;
       // Pass in uniforms
@@ -84,12 +86,12 @@ function loader(Canvas){
         Math.sin(-timeFromStart/1000), 0, Math.cos(timeFromStart/1000)
       ])
   }
-  // (3b) Player position
+  // Player position
   function At_Draw_3b__setUniforms_Player(canvasThis, {Player_pvuw}){
     let gl = canvasThis.gl;
     gl.uniformMatrix4fv(canvasThis.uniformReferences['camera_pvuw'], false, Player_pvuw);
   }
-  // (3c) Object position
+  // Object position
   function At_Draw_3c__setUniforms_Object(canvasThis, {Object_pvuw}){
     let gl = canvasThis.gl;
     gl.uniformMatrix4fv(canvasThis.uniformReferences['object_pvuw'], false, Object_pvuw);

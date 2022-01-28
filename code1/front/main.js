@@ -19,5 +19,4 @@ window.addEventListener("load", function onLoad (evt) {
 
 
   const runningGame = loader(myCanvas);
-  console.log('Done')
 });

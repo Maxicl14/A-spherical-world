@@ -3,6 +3,7 @@ canvas#canvas{
   height: 80%;
   width: 80%;
   margin: 5% 10%;
+  border: 2px solid black;
 }
 
 .info_yellow{
