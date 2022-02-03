@@ -85,7 +85,7 @@ function loader(Canvas){
         0, 1, 0,
         Math.sin(-timeFromStart/1000), 0, Math.cos(timeFromStart/1000)
       ])
-  }
+  }  
   // Player position
   function At_Draw_3b__setUniforms_Player(canvasThis, {Player_pvuw}){
     let gl = canvasThis.gl;
