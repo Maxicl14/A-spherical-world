@@ -1,6 +1,6 @@
 
-import {vertexShader as vertexShaderSource} from '../shaders/vertexShader.js';
-import {fragmentShader as fragmentShaderSource} from '../shaders/fragmentShader.js';
+import {vertexShader as vertexShaderSource} from '../shaders/vertexShader1.js';
+import {fragmentShader as fragmentShaderSource} from '../shaders/fragmentShader1.js';
 
 class Canvas {
 
@@ -13,22 +13,19 @@ class Canvas {
     if (!this.WebGLAvailable){
       return;
     }
-    // Colour screen black
-    this.clearColour();
-
     // Stores references to meshes that were input into the GPU
     // form of list item: {meshID: __, vertexBufferRef: ___ , indexBufferRef: ____ }
     this.meshBuffers = [];
-
     // Ref to shader program (to be made)
     this.program;
     // Locations of uniforms and attributes stored here.
     this.attributeReferences = {};
     this.uniformReferences = {};
 
+    // Colour screen black
+    this.clearColour();
+    // Attach shaders and make the WebGL program
     this.createProgram();
-
-    console.log('Created')
   }
   getContext(){
     // Sets up this.gl or returns false if unable to.
@@ -59,20 +56,18 @@ class Canvas {
   *     FRAGMENT_SHADER.
   * @return {!WebGLShader} The shader.
   */
-  compileShader(shaderSource, shaderType) {
 
+  // shaderSource is a string of GLSL code
+  // shaderType is gl.VERTEX_SHADER or gl.FRAGMENT_SHADER
+  compileShader(shaderSource, shaderType) {
     // Get rendering context
     let gl = this.gl;
-
     // Create the shader object
     var shader = gl.createShader(shaderType);
-
     // Set the shader source code.
     gl.shaderSource(shader, shaderSource);
-
     // Compile the shader
     gl.compileShader(shader);
-
     // Check if it compiled
     var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (!success) {
@@ -80,7 +75,6 @@ class Canvas {
       console.log( "could not compile shader:" + gl.getShaderInfoLog(shader));
       return false;
     }
-
     return shader;
   }
 
@@ -91,39 +85,35 @@ class Canvas {
   * @global {!WebGLShaderSource} fragmentShader A fragment shader string.
   * @return {!WebGLProgram} A program.
   */
-  createProgram() {
-    this.gl;
 
+  // returns a WebGL program reference
+  createProgram() {
     // create a program.
     var program = this.gl.createProgram();
-
     // compile and attach the shaders.
-    // (SOURCeS IMPORTED FROM EXTERNAL FILES)
+    // (SOURCES IMPORTED FROM /shaders)
+    // VERTEX S.
     var vertexShader = this.compileShader(vertexShaderSource, this.gl.VERTEX_SHADER);
     if (vertexShader === false){
       throw 'Vertex shader not compiled.';
     }
     this.gl.attachShader(program, vertexShader);
-
+    // FRAGMENT S.
     var fragmentShader = this.compileShader(fragmentShaderSource, this.gl.FRAGMENT_SHADER);
     if (fragmentShader === false){
       throw 'Vertex shader not compiled.';
     }
     this.gl.attachShader(program, fragmentShader);
-
     // link the program.
     this.gl.linkProgram(program);
-
     // Check if it linked.
     var success = this.gl.getProgramParameter(program, this.gl.LINK_STATUS);
     if (!success) {
         // something went wrong with the link
         throw ("program failed to link:" + this.gl.getProgramInfoLog (program));
     }
-
     this.program = program;
   };
-
   useProgram(){
     this.gl.useProgram(this.program)
   }
@@ -131,6 +121,8 @@ class Canvas {
   //____________________________________________________________________________//
 
   // TEST with invalid dictionary
+
+
   add_AttributeReference(KeyToVarDict){
     // in { key : Shader Variable Name String } dictionary
     // out { key : Attribute Location Reference } dictionary
@@ -145,8 +137,6 @@ class Canvas {
       this.attributeReferences[key] = this.gl.getAttribLocation(this.program, ShaderAttributeName);
     }
   }
-
-  // TEST with invalid dictionary
   add_UniformReference(KeyToVarDict){
     // in { key : Shader Variable Name String } dictionary
     // out { key : Uniform Location Reference } dictionary
@@ -163,10 +153,10 @@ class Canvas {
   }
 
 
-
+  // Add vertex and index data to WebGL for one mesh
+  // save the index and vertex buffer references
   add_Indexed_Mesh(ID, vertices, trianglesIndexed){
     let gl = this.gl;
-
     // Create and bind buffer, then add vertex coordinates.
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -175,7 +165,6 @@ class Canvas {
       new Float32Array(vertices),
       gl.STATIC_DRAW
     )
-
     // Create and bind index buffer.
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -194,7 +183,7 @@ class Canvas {
         numPoints: trianglesIndexed.length
       }
     });
-
+  }
     // At draw time we need to bind whatever buffer holds the indices we want to use.
     // bind the buffer containing the indices
     // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -206,7 +195,7 @@ class Canvas {
     // gl.drawArrays(primitiveType, offset, count);
     // var indexType = gl.UNSIGNED_SHORT;
     // gl.drawElements(primitiveType, count, indexType, offset);
-  }
+
 
   findMesh(meshID){
     // Find buffers to use
@@ -234,18 +223,15 @@ class Canvas {
   drawObject(beforeDraw, numElementsToDraw){
 
     // Call the requested function to link correct buffers
+    // And to pass in uniform data
     beforeDraw(this);
 
+    // Render the object to the screen
     let primitiveType = this.gl.TRIANGLES;
     let offset = 0;
-    // Number of vertices
     let indexType = this.gl.UNSIGNED_SHORT;
     this.gl.drawElements(primitiveType, numElementsToDraw, indexType, offset);
 
-
-    // gl.drawArrays(primitiveType, offset, count);
-
-    // Success
     return true;
   }
 }
