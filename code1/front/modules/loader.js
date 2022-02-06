@@ -102,6 +102,7 @@ function loader(Canvas){
     let dt = timeNow - previousTime;
     // Render again if enough time has passed
     if (dt >= msPerFrame){
+      Canvas.clearColour()
       let At_Draw;
       // Render every object
       for (let i=0; i< processed_objects.length; i++){
