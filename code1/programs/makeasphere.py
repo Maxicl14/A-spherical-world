@@ -28,7 +28,7 @@ def generate_new_vertex_coords_from_other_two(v1, v2, radius):
 # ========================================================= #
 
 NUM_ITERATIONS = 1
-RADIUS = 0.1
+RADIUS = 1.0
 
 # Use iterative vertex generation method with triangles
 # Every triangle becomes four triangles

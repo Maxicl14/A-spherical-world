@@ -13,6 +13,8 @@ class Canvas {
     if (!this.WebGLAvailable){
       return;
     }
+    this.canvas_height = this.gl.drawingBufferHeight;
+    this.canvas_width = this.gl.drawingBufferWidth;
     // Stores references to meshes that were input into the GPU
     // form of list item: {meshID: __, vertexBufferRef: ___ , indexBufferRef: ____ }
     this.meshBuffers = [];

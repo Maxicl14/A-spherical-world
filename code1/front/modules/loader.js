@@ -22,8 +22,14 @@ function loader(Canvas){
     'object_xy': 'object_xy',
     'object_size':'object_size',
     'object_colour': 'object_colour',
+    'canvas_height': 'canvas_height',
+    'canvas_width': 'canvas_width',
+    'canvas_scale': 'canvas_scale',
+    'depthFactor': 'depthFactor'
   })
-  let X_displacement = 0.2
+  let canvas_scale_factor = 124;
+  let depthFactor = 0.1; // 0.0 to 1.0
+  // Lower means no shading and higher means there can be completely dark areas.
 
 // Turn map objects into list of those ready for processing
   let amount_of_objects = Map_API.get_num_Objects(map);
@@ -72,6 +78,10 @@ function loader(Canvas){
   // Time based Uniforms
   function At_Draw_3a__setUniforms_General(canvasThis){
       let gl = canvasThis.gl;
+      gl.uniform1f(canvasThis.uniformReferences['canvas_height'], canvasThis.canvas_height)
+      gl.uniform1f(canvasThis.uniformReferences['canvas_width'], canvasThis.canvas_width)
+      gl.uniform1f(canvasThis.uniformReferences['canvas_scale'], canvas_scale_factor)
+      gl.uniform1f(canvasThis.uniformReferences['depthFactor'], depthFactor)
   }
   // Player position
   function At_Draw_3b__setUniforms_Player(canvasThis){
