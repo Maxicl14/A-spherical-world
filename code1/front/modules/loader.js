@@ -19,8 +19,10 @@ function loader(Canvas){
     'coordinates': 'coordinates'
   })
   Canvas.add_UniformReference({
+    'player_pvuw': 'camera_pvuw',
     'object_xy': 'object_xy',
     'object_size':'object_size',
+    'object_pvuw': 'object_pvuw',
     'object_colour': 'object_colour',
     'canvas_height': 'canvas_height',
     'canvas_width': 'canvas_width',
@@ -86,21 +88,23 @@ function loader(Canvas){
   // Player position
   function At_Draw_3b__setUniforms_Player(canvasThis){
     let gl = canvasThis.gl;
+    gl.uniformMatrix4fv(canvasThis.uniformReferences['player_pvuw'], false, Player_pvuw)
   }
   // Object position
-  function At_Draw_3c__setUniforms_Object(canvasThis, {Object_size, Object_xy, Object_colour}){
+  function At_Draw_3c__setUniforms_Object(canvasThis, {Object_size, Object_xy, Object_colour, Object_pvuw}){
     let gl = canvasThis.gl;
     gl.uniform1f(canvasThis.uniformReferences['object_size'], Object_size)
     gl.uniform2fv(canvasThis.uniformReferences['object_xy'], new Float32Array(Object_xy))
     gl.uniform4fv(canvasThis.uniformReferences['object_colour'], new Float32Array(Object_colour))
+    gl.uniformMatrix4fv(canvasThis.uniformReferences['object_pvuw'], false, Object_pvuw)
   }
   // Generates the function to call when drawing every frame
-  const Generate_At_Draw = ({vertexBufferRef, indexBufferRef, Object_size, Object_xy, Object_colour}) => (canvasThis) => {
+  const Generate_At_Draw = ({vertexBufferRef, indexBufferRef, Object_size, Object_xy, Object_colour, Object_pvuw}) => (canvasThis) => {
     At_Draw_1__generalSetup(canvasThis)
     At_Draw_2__setAttribs(canvasThis, {vertexBufferRef, indexBufferRef})
     At_Draw_3a__setUniforms_General(canvasThis)
     At_Draw_3b__setUniforms_Player(canvasThis)
-    At_Draw_3c__setUniforms_Object(canvasThis, {Object_size, Object_xy, Object_colour})
+    At_Draw_3c__setUniforms_Object(canvasThis, {Object_size, Object_xy, Object_colour, Object_pvuw})
   }
 
 
@@ -123,6 +127,7 @@ function loader(Canvas){
           Object_size: Map_API.get_Object_size(object_for_drawing.map_object_index, map),
           Object_colour: Map_API.get_Object(object_for_drawing.map_object_index, map).colour,
           Object_xy: Map_API.get_Object(object_for_drawing.map_object_index, map).xy,
+          Object_pvuw: Map_API.get_Object_pvuw(object_for_drawing.map_object_index, map)
         })
         Canvas.drawObject(At_Draw, object_for_drawing.meshBufferLocations.metadata.numPoints);
       }

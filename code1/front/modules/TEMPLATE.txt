@@ -1,0 +1,3 @@
+'object-pvuw': 'object_pvuw',
+gl.uniformMatrix4fv(canvasThis.uniformReferences['object_pvuw'], false, Object_pvuw)
+Object_pvuw

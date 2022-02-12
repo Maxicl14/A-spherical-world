@@ -9,6 +9,13 @@ const vertexShader = `
   float magnitude(vec4 vector){
     return sqrt(vector.x*vector.x + vector.y*vector.y + vector.z*vector.z + vector.w*vector.w);
   }
+  float magnitude(vec3 vector){
+    return sqrt(vector.x*vector.x + vector.y*vector.y + vector.z*vector.z);
+  }
+
+  vec4 unit(vec4 V){
+    return V / magnitude(V)
+  }
 
   float det(mat2 matrix){
     return ( matrix[0].x*matrix[1].y - matrix[0].y*matrix[1].x ) ;
@@ -45,25 +52,27 @@ const vertexShader = `
 
   void main() {
 
-    vec3 c = rotationZX * coordinates;
+    float Pi = 3.14;
 
-    vec4 direction = object_pvuw * vec4(0.0, c.xyz);
-    direction = direction / magnitude(direction);
-    float Distance = magnitude(vec4(0.0,c));
-    vec4 center = object_pvuw[0].xyzw;
-    float cosD = cos(6.28+Distance*3.14);
-    float sinD = sin(6.28+Distance*3.14);
-    vec4 Vertex_4D_coordinates = (cosD * center) + (sinD * direction);
+    // Transfer 3D model coordinate to 4D world coordinate
+    vec3 c = coordinates;
+    vec4 Direction_4D_to_point = unit( object_pvuw * vec4(0.0, c.xyz) );
+    float Distance_to_point = magnitude(c);
+    vec4 Object_center = object_pvuw[0].xyzw;
+    float cosD = cos(Distance_to_point*Pi);
+    float sinD = sin(Distance_to_point*Pi);
+    vec4 Vertex_4D_coordinates = (cosD * Object_center) + (sinD * Direction_4D_to_point);
 
-    // Calculating distance and direction player to object
-    vec4 P1 = camera_pvuw[0].xyzw;
-    vec4 P2 = Vertex_4D_coordinates;
-    cosD = dot(P1, P2);
+    // Calculating distance and direction camera to point
+    vec4 C_Pos4D = camera_pvuw[0].xyzw;
+    vec4 P_Pos4D = Vertex_4D_coordinates;
+    // Calculating angular distance D
+    cosD = dot(C_Pos4D, P_Pos4D);
     sinD = sqrt(1.0-cosD*cosD);
-    vec4 player_to_object = (P2 - (P1 * cosD))/( sinD );
-    if (dot(player_to_object, camera_pvuw[1].xyzw) < 0.0) {
+    vec4 camera_to_point = (P_Pos4D - (C_Pos4D * cosD))/( sinD );
+    if (dot(camera_to_point, camera_pvuw[1].xyzw) < 0.0) {
       // Facing wrong way
-      player_to_object = -player_to_object;
+      camera_to_point = -camera_to_point;
     }
 
     // Calculate the 3D direction from player to object
@@ -72,7 +81,7 @@ const vertexShader = `
     concatenated_axes[1] = camera_pvuw[2].xyz;
     concatenated_axes[2] = camera_pvuw[3].xyz;
     mat3 invConcatAxes = inverse(concatenated_axes);
-    vec3 abc = invConcatAxes * player_to_object.xyz;
+    vec3 abc = invConcatAxes * camera_to_point.xyz;
 
     // Calculate screen coordinates
     // ...based on distance to screen
