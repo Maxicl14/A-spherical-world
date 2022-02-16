@@ -89,7 +89,7 @@ export const vertexShader = `
         vec4 camera_to_point = (P_Pos4D - (C_Pos4D * cosD))/( sinD );
         if (dot(camera_to_point, camera_pvuw[1].xyzw) < 0.0) {
           // Facing wrong way
-          camera_to_point = -camera_to_point;
+          // camera_to_point = -camera_to_point;
         }
 
         // Calculate the 3D direction from player to object
@@ -100,8 +100,8 @@ export const vertexShader = `
         mat3 invConcatAxes = inverse(concatenated_axes);
         // Correspond to forward, right and up axes v, u, w.
         vec3 abc = invConcatAxes * camera_to_point.xyz;
-
-        return abc;
+        vec3 xyz = vec3(abc.z, abc.y, abc.x);
+        return xyz;
   }
 
   vec3 getCoords_3D_translated(vec3 coords, vec2 object_translate_vector){

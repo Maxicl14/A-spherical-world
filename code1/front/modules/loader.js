@@ -1,5 +1,6 @@
 
-import Map_API from '../modules/Map_API.js';
+import Map_API from './Map_API.js';
+import Player from './Player.js';
 import {Object4D} from './Objects.js';
 
 import map from '../maps/map1.js';
@@ -29,7 +30,7 @@ function loader(Canvas){
     'canvas_scale': 'canvas_scale',
     'depthFactor': 'depthFactor'
   })
-  let canvas_scale_factor = 124;
+  let canvas_scale_factor = 100;
   let depthFactor = 0.1; // 0.0 to 1.0
   // Lower means no shading and higher means there can be completely dark areas.
 
@@ -59,6 +60,7 @@ function loader(Canvas){
     0.0, -1.0, 0.0, 0.0,
     0.0, 0.0, -1.0, 0.0,
   ]
+  let Player_1 = new Player(Player_pvuw)
 
   // Set up the program here
   function At_Draw_1__generalSetup(canvasThis){
@@ -86,7 +88,7 @@ function loader(Canvas){
       gl.uniform1f(canvasThis.uniformReferences['depthFactor'], depthFactor)
   }
   // Player position
-  function At_Draw_3b__setUniforms_Player(canvasThis){
+  function At_Draw_3b__setUniforms_Player(canvasThis, {Player_pvuw}){
     let gl = canvasThis.gl;
     gl.uniformMatrix4fv(canvasThis.uniformReferences['player_pvuw'], false, Player_pvuw)
   }
@@ -99,31 +101,35 @@ function loader(Canvas){
     gl.uniformMatrix4fv(canvasThis.uniformReferences['object_pvuw'], false, Object_pvuw)
   }
   // Generates the function to call when drawing every frame
-  const Generate_At_Draw = ({vertexBufferRef, indexBufferRef, Object_size, Object_xy, Object_colour, Object_pvuw}) => (canvasThis) => {
+  const Generate_At_Draw = ({vertexBufferRef, indexBufferRef, Player_pvuw, Object_size, Object_xy, Object_colour, Object_pvuw}) => (canvasThis) => {
     At_Draw_1__generalSetup(canvasThis)
     At_Draw_2__setAttribs(canvasThis, {vertexBufferRef, indexBufferRef})
     At_Draw_3a__setUniforms_General(canvasThis)
-    At_Draw_3b__setUniforms_Player(canvasThis)
+    At_Draw_3b__setUniforms_Player(canvasThis, {Player_pvuw})
     At_Draw_3c__setUniforms_Object(canvasThis, {Object_size, Object_xy, Object_colour, Object_pvuw})
   }
 
 
   // Define the rendering loop function
-  let msPerFrame = 500;
+  let msPerFrame = 100;
   let previousTime = Date.now()
   function loop(){
     let timeNow = Date.now();
     let dt = timeNow - previousTime;
     // Render again if enough time has passed
     if (dt >= msPerFrame){
+      // Continue rotation
+      Player_1.increment_angle(dt)
+      // Set background
       Canvas.clearColour()
-      let At_Draw;
       // Render every object
+      let At_Draw;
       for (let i=0; i< processed_objects.length; i++){
         let object_for_drawing = processed_objects[i];
         At_Draw = Generate_At_Draw({
           vertexBufferRef: object_for_drawing.meshBufferLocations.vertexBufferRef,
           indexBufferRef: object_for_drawing.meshBufferLocations.indexBufferRef,
+          Player_pvuw: Player_1.calculate_new_pvuw(),
           Object_size: Map_API.get_Object_size(object_for_drawing.map_object_index, map),
           Object_colour: Map_API.get_Object(object_for_drawing.map_object_index, map).colour,
           Object_xy: Map_API.get_Object(object_for_drawing.map_object_index, map).xy,
