@@ -30,8 +30,8 @@ function loader(Canvas){
     'canvas_scale': 'canvas_scale',
     'depthFactor': 'depthFactor'
   })
-  let canvas_scale_factor = 100;
-  let depthFactor = 0.1; // 0.0 to 1.0
+  let canvas_scale_factor = 450;
+  let depthFactor = 0.5; // 0.0 to 1.0
   // Lower means no shading and higher means there can be completely dark areas.
 
 // Turn map objects into list of those ready for processing
@@ -60,13 +60,24 @@ function loader(Canvas){
     0.0, -1.0, 0.0, 0.0,
     0.0, 0.0, -1.0, 0.0,
   ]
-  let Player_1 = new Player(Player_pvuw)
+  let Player_rotation_set = [
+    ['KeyW', [1, 2]],
+    ['KeyA', [3, 1]],
+    ['KeyS', [2, 1]],
+    ['KeyD', [1, 3]],
+    ['KeyQ', [3,2]],
+    ['KeyE', [2,3]],
+    ['Space', [0, 1]]
+  ]
+  let Player_size = 0.3;
+  let Player_1 = new Player(Player_pvuw, Player_size, Player_rotation_set, map);
 
   // Set up the program here
   function At_Draw_1__generalSetup(canvasThis){
       let gl = canvasThis.gl;
       gl.useProgram(canvasThis.program);
       gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LESS);
   }
   // Attributes are lists of vertices to render
   function At_Draw_2__setAttribs(canvasThis, {vertexBufferRef, indexBufferRef}){

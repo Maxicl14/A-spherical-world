@@ -56,7 +56,12 @@ export const vertexShader = `
       return (1.0 / dot(row0, minors0)) * adj;
   }
 
-
+  float arcos(float x){
+    float Pi = 3.1415;
+    float x2 = x*x;
+    float arsin = (x)*(1.0 + (1.0/4.0)*(x2)*(1.0 + (1.0/2.0)*(x2)*(1.0 + (5.0/8.0)*(x2)*(1.0 + (7.0/10.0)*(x2)*(1.0)))));
+    return (Pi/2.0 - arsin);
+  }
 
   vec3 scaleCoordsToCanvas(vec3 coords){
     vec3 newCoords = vec3(
@@ -67,9 +72,9 @@ export const vertexShader = `
     return newCoords;
   }
 
-  vec3 getCoords_4D_modified(vec3 vertex_model_coordinates, mat4 object_pvuw, mat4 camera_pvuw){
+  vec4 getCoords_4D_modified(vec3 vertex_model_coordinates, mat4 object_pvuw, mat4 camera_pvuw){
 
-        float Pi = 3.14;
+        float Pi = 3.1415;
 
         // Transfer 3D model coordinate to 4D world coordinate
         vec3 c = vertex_model_coordinates;
@@ -87,9 +92,10 @@ export const vertexShader = `
         cosD = dot(C_Pos4D, P_Pos4D);
         sinD = sqrt(1.0-cosD*cosD);
         vec4 camera_to_point = (P_Pos4D - (C_Pos4D * cosD))/( sinD );
+        bool behind = false;
         if (dot(camera_to_point, camera_pvuw[1].xyzw) < 0.0) {
           // Facing wrong way
-          // camera_to_point = -camera_to_point;
+          behind = true;
         }
 
         // Calculate the 3D direction from player to object
@@ -100,8 +106,14 @@ export const vertexShader = `
         mat3 invConcatAxes = inverse(concatenated_axes);
         // Correspond to forward, right and up axes v, u, w.
         vec3 abc = invConcatAxes * camera_to_point.xyz;
-        vec3 xyz = vec3(abc.z, abc.y, abc.x);
-        return xyz;
+        float D;
+        if (behind){
+          D = ( 2.0 - (arcos(cosD) / (Pi)) ) - 1.0;
+        } else {
+          D = (arcos(cosD) / (Pi)) - 1.0;
+        }
+        vec4 xyzD = vec4(abc.z, abc.y, abc.x, D);
+        return xyzD;
   }
 
   vec3 getCoords_3D_translated(vec3 coords, vec2 object_translate_vector){
@@ -120,12 +132,17 @@ export const vertexShader = `
     depth = coords.z;
   }
 
+
+
   void shader_4D_spherical(){
     vec3 coords = coordinates * object_size;
-    vec3 abc = getCoords_4D_modified(coords, object_pvuw, camera_pvuw);
-    vec3 abc_scale = scaleCoordsToCanvas(abc);
-    gl_Position = vec4(abc_scale, 1.0);
-    depth = coords.z;
+    vec4 xyzD = getCoords_4D_modified(coords, object_pvuw, camera_pvuw);
+    vec3 xyz = xyzD.xyz;
+    float D = xyzD.w;
+    vec3 xyz_scale = scaleCoordsToCanvas(xyz);
+    xyz_scale.z = (D+1.0)/2.0;
+    gl_Position = vec4(xyz_scale, 1.0);
+    depth = D;
   }
 
   void main(){
