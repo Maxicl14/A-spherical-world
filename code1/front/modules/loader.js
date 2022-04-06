@@ -4,8 +4,21 @@ import Player from './Player.js';
 import {Object4D} from './Objects.js';
 
 import map from '../maps/map1.js';
+import {rv as RocketVertices, rti as RocketTriangles} from '../models/rocket.js';
+import {calculate_new_pvuw} from './utils.js';
+const Pi = 3.1415;
+
+const use_rocket = true;
+const use_collision_overlay = true;
+const debug_mode_on = true;
 
 function loader(Canvas){
+
+  if(debug_mode_on === true){
+    document.addEventListener('keydown', (e)=>{
+      console.log(e.code);
+    })
+  }
 
   // Save meshes to renderer Canvas object.
   // For every mesh in the mesh dictionary
@@ -30,8 +43,8 @@ function loader(Canvas){
     'canvas_scale': 'canvas_scale',
     'depthFactor': 'depthFactor'
   })
-  let canvas_scale_factor = 450;
-  let depthFactor = 0.5; // 0.0 to 1.0
+  let canvas_scale_factor = 420;
+  let depthFactor = 0.9; // 0.0 to 1.0
   // Lower means no shading and higher means there can be completely dark areas.
 
 // Turn map objects into list of those ready for processing
@@ -52,6 +65,13 @@ function loader(Canvas){
     }
   }
 
+  // Add an additional rocket object to the world
+  let Rocket_Mesh_Locations;
+  if (use_rocket){
+    Canvas.add_Indexed_Mesh('rocket', RocketVertices, RocketTriangles);
+    Rocket_Mesh_Locations = Canvas.findMesh('rocket');
+  }
+
   // Player with no mesh but acting as a camera
   let Player_pvuw =
   [
@@ -69,8 +89,15 @@ function loader(Canvas){
     ['KeyE', [2,3]],
     ['Space', [0, 1]]
   ]
-  let Player_size = 0.3;
-  let Player_1 = new Player(Player_pvuw, Player_size, Player_rotation_set, map);
+  let Player_size = 0.05;
+  let Rocket_size = 0.02;
+  let Player_1 = new
+  Player (
+    Player_pvuw,
+    Player_size,
+    Player_rotation_set,
+    map,
+    use_collision_overlay?(onCollision):(()=>{}));
 
   // Set up the program here
   function At_Draw_1__generalSetup(canvasThis){
@@ -122,7 +149,7 @@ function loader(Canvas){
 
 
   // Define the rendering loop function
-  let msPerFrame = 100;
+  let msPerFrame = 50;
   let previousTime = Date.now()
   function loop(){
     let timeNow = Date.now();
@@ -134,13 +161,14 @@ function loader(Canvas){
       // Set background
       Canvas.clearColour()
       // Render every object
+      let Player_pvuw = Player_1.calculate_new_pvuw_and_confirm_movement()
       let At_Draw;
       for (let i=0; i< processed_objects.length; i++){
         let object_for_drawing = processed_objects[i];
         At_Draw = Generate_At_Draw({
           vertexBufferRef: object_for_drawing.meshBufferLocations.vertexBufferRef,
           indexBufferRef: object_for_drawing.meshBufferLocations.indexBufferRef,
-          Player_pvuw: Player_1.calculate_new_pvuw(),
+          Player_pvuw: Player_pvuw,
           Object_size: Map_API.get_Object_size(object_for_drawing.map_object_index, map),
           Object_colour: Map_API.get_Object(object_for_drawing.map_object_index, map).colour,
           Object_xy: Map_API.get_Object(object_for_drawing.map_object_index, map).xy,
@@ -148,18 +176,32 @@ function loader(Canvas){
         })
         Canvas.drawObject(At_Draw, object_for_drawing.meshBufferLocations.metadata.numPoints);
       }
+      if (use_rocket){
+        let rocketPVUW = Player_1.determineRocketPVUW();
+        let At_Draw_rocket = Generate_At_Draw({
+          vertexBufferRef: Rocket_Mesh_Locations.vertexBufferRef,
+          indexBufferRef: Rocket_Mesh_Locations.indexBufferRef,
+          Player_pvuw: Player_pvuw,
+          Object_size: Rocket_size,
+          Object_xy: [0.0, 0.0],
+          Object_colour: [0.9,0.5,0.0,1.0],
+          Object_pvuw: rocketPVUW,
+        })
+        Canvas.drawObject(At_Draw_rocket, Rocket_Mesh_Locations.metadata.numPoints);
+      }
       previousTime = timeNow;
     }
     // loop after some time
-    requestAnimationFrame(loop)
+    requestAnimationFrame(loop);
   }
-  // Call loop first time to start rendering
   requestAnimationFrame(loop);
   return true;
 }
 
-function startLoop(Canvas, numPoints, frameRate){
-
+function onCollision(){
+  let background = document.getElementById('collision_background');
+  background.classList.add('background-collided');
+  setTimeout(()=>{background.classList.remove('background-collided')},1000);
 }
 
 

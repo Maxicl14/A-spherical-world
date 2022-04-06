@@ -1,39 +1,7 @@
 import Map_API from './Map_API.js';
-
+import {rotate_4D_vectors, replace_vector_in_matrix_4D, get_vector_from_matrix_4D, calculate_new_pvuw} from './utils.js';
 const Pi = 3.1415;
 
-function get_vector_from_matrix_4D(index, matrix){
-  let startIndex = index * 4;
-  let newVector = [matrix[startIndex], matrix[startIndex+1], matrix[startIndex+2], matrix[startIndex+3]]
-  return newVector;
-}
-
-function rotate_4D_vectors(a, b, angle){
-  let cos = Math.cos(angle)
-  let sin = Math.sin(angle)
-  // p = p*cos + v*cos
-  // v = -p*sin + v*cos
-  let a_ = [null, null, null, null]
-  let b_ = [null, null, null, null]
-  a_[0] = a[0] * cos + b[0] * sin
-  a_[1] = a[1] * cos + b[1] * sin
-  a_[2] = a[2] * cos + b[2] * sin
-  a_[3] = a[3] * cos + b[3] * sin
-  b_[0] = b[0] * cos - a[0] * sin
-  b_[1] = b[1] * cos - a[1] * sin
-  b_[2] = b[2] * cos - a[2] * sin
-  b_[3] = b[3] * cos - a[3] * sin
-  return [a_, b_]
-}
-
-function replace_vector_in_matrix_4D(index, vector, matrix){
-  let startIndex = index * 4;
-  matrix[startIndex] = vector[0]
-  matrix[startIndex+1] = vector[1]
-  matrix[startIndex+2] = vector[2]
-  matrix[startIndex+3] = vector[3]
-  return matrix
-}
 
 
 /*
@@ -46,8 +14,10 @@ let rotation_set = [
 ]
 */
 
+const prevent_collisions = true;
+
 class Player {
-  constructor(pvuw_initial, player_size, rotation_set, map) {
+  constructor(pvuw_initial, player_size, rotation_set, map, Collision_display_function) {
     // 1.0 is Pi
     this.player_size = player_size;
     this.pvuw_saved = pvuw_initial;
@@ -57,13 +27,14 @@ class Player {
     if(this.map_list_of_pvuws.length !== this.map_list_of_sizes.length){
       console.error('Something in the code is going wrong.');
     }
+    this.Collision_display_function = Collision_display_function;
 
     // Movement and rotation state
     this.rotating = false; // not moving
     this.keydowncode = '';
     this.rotation = [0, 1]; // forward
     this.rotation_angle = 0.0;
-    this.rotation_speed = 0.5; // radians per second
+    this.rotation_speed = 0.7; // radians per second
 
     // Add key listeners to move and rotate
     for (let code_rotation of rotation_set){
@@ -94,8 +65,7 @@ class Player {
       if (e.code === code){
         // Stop rotating
         // update to consolidate the rotation
-        let new_pvuw = this.calculate_new_pvuw()
-        this.update_pvuw(new_pvuw);
+        let new_pvuw = this.calculate_new_pvuw_and_confirm_movement();
         this.rotating = false;
         this.rotation_angle = 0.0;
       }
@@ -107,36 +77,46 @@ class Player {
 
   increment_angle(dt){
     if (this.rotating === true){
-      console.log(this.rotating)
       let change_angle = this.rotation_speed * (1/1000) * dt;
       this.rotation_angle += change_angle;
     }
   }
 
-  calculate_new_pvuw(){
-    let rotation = this.rotation;
-    let angle = this.rotation_angle;
-    let pvuw = this.pvuw_saved;
-    let a = get_vector_from_matrix_4D(rotation[0], pvuw)
-    let b = get_vector_from_matrix_4D(rotation[1], pvuw)
-    let [a_, b_] = rotate_4D_vectors(a, b, angle)
-    let pvuw2 = replace_vector_in_matrix_4D(rotation[0], a_, pvuw)
-    pvuw2 = replace_vector_in_matrix_4D(rotation[1], b_, pvuw2)
-    this.pvuw_saved = pvuw2;
-    this.rotation_angle = 0.0;
+  // Moves player with set rotation, returns new pvuw of player, and prevents collisions
+  calculate_new_pvuw_and_confirm_movement(){
+    let pvuw_previous = this.pvuw_saved;
+    // Calculate rotation
+    let pvuw_new = this.calculate_pvuw_after_set_rotation();
+    this.pvuw_saved = pvuw_new;
 
     // Check for collisions with planets
-    let collided = this.check_for_collisions(pvuw2);
-    if (collided) {
+    let collided = false;
+    if (prevent_collisions === true){
+      collided = this.check_for_collisions(pvuw_new);
+    }
+    if (collided === true) {
       // Reset to pvuw before collision.
       this.rotation = [this.rotation[1], this.rotation[0]];
-      this.pvuw_saved = pvuw;
-      return pvuw;
+      this.pvuw_saved = pvuw_previous;
+      // Display collision warning
+      this.Collision_display_function();
+      setTimeout(()=>{this.rotating = false}, 500)
+
+      return pvuw_previous;
+
     } else {
       this.rotation_angle = 0.0;
-      this.pvuw_saved = pvuw2;
-      return pvuw2;
+      this.pvuw_saved = pvuw_new;
+      return pvuw_new;
     }
+  }
+
+  calculate_pvuw_after_set_rotation(){
+    return calculate_new_pvuw(
+      this.rotation,
+      this.rotation_angle,
+      this.pvuw_saved
+    );
   }
 
   check_for_collision(object_pvuw, player_pvuw, object_size, player_size){
@@ -159,13 +139,30 @@ class Player {
         let o_size = list_of_sizes[planet_index];
         let collided = this.check_for_collision(o_pvuw, player_pvuw, o_size, this.player_size);
         if (collided){
-          console.log('collided')
           return true
         }
     }
     return false
   }
 
+  determineRocketPVUW(){
+    let rocketPVUW = this.pvuw_saved;
+    rocketPVUW = calculate_new_pvuw([2, 1], Pi * 0.04, rocketPVUW);
+    rocketPVUW = calculate_new_pvuw([0, 1], Pi * 0.05, rocketPVUW);
+    rocketPVUW = calculate_new_pvuw([1, 2], Pi * 0.05, rocketPVUW);
+
+    if (this.rotating){
+      if (this.rotation[0] === 0 || this.rotation[1] === 0){
+        // Forwards or backwards
+        rocketPVUW = calculate_new_pvuw([1,0], Pi*0.01, rocketPVUW);
+      } else {
+        rocketPVUW = calculate_new_pvuw(this.rotation, Pi*0.12, rocketPVUW);
+      }
+    }
+
+    rocketPVUW = calculate_new_pvuw([3, 1], Pi * 0.5, rocketPVUW);
+    return rocketPVUW;
+  }
 
 }
 
