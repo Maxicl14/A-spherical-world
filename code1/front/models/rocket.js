@@ -2,15 +2,10 @@
 /*
 
 A: the axial length of rocket.
-
 B: The width or radius of the rocket.
-
 C: B divided by the square root of two.
-
 D: The axial distance to wing attachment.
-
 E: The axial distance to the cone part of the rocket.
-
 F: The wingspan of the rocket.
 
 */
@@ -22,7 +17,6 @@ let d = 0.2;
 let e = 0.4;
 let f = b + (b*0.25);
 let o = 0.0;
-
 
 export const rv = [
     // Centre point

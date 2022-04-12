@@ -89,6 +89,15 @@ function loader(Canvas){
     ['KeyE', [2,3]],
     ['Space', [0, 1]]
   ]
+  let Player_rotation_set_2 = [
+    ['KeyI', [1, 2]],
+    ['KeyJ', [3, 1]],
+    ['KeyK', [2, 1]],
+    ['KeyL', [1, 3]],
+    ['KeyU', [3,2]],
+    ['KeyO', [2,3]],
+    ['KeyM', [0, 1]]
+  ]
   let Player_size = 0.05;
   let Rocket_size = 0.02;
   let Player_1 = new
