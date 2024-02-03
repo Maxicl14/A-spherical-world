@@ -1,0 +1,10 @@
+
+Instructions for running the simulation
+1. Save the codebase to the local area.
+2. Install node.js and npm.
+3. In a terminal, cd to /back
+4. Run “npm install” to install dependencies (libraries called express and nodemon).
+5. Run “npm run game” to allow code reload after editing.
+6. Run “npm run start” to just allow access to webpage.
+7. Using a browser, go to localhost:5000/canvas.html
+8. To access the debug console, press F12 or use the options>developer tools in the browser.

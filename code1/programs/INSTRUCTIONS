@@ -1,0 +1,18 @@
+
+To use the program, modify the variables NUM_ITERATIONS and RADIUS.
+
+NUM_ITERATIONS = 2
+RADIUS = 1.5
+
+-= or =-
+
+NUM_ITERATIONS = 3
+RADIUS = 1.0
+
+Then run the program using python v3 (any 3.x.y).
+
+Go to /front/models. Add a new js file (or open an existing one).
+Copy the first array into a model file, under the variable name vertices_something.
+Copy the second array into a model file, under the variable name triangles_something.
+Add, at the end of the file:
+export Model_planet  = { vertices: vertices_something, trianglesIndexed: triangles_something };
