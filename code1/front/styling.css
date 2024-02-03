@@ -14,3 +14,20 @@ canvas#canvas{
   border: solid 1px #dddd66;
   border-radius: 5px;
 }
+
+.background-collided{
+  background-color: #ffcccc;
+}
+
+body{
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.tutorial{
+  top: 0;
+  position: absolute;
+  background: #fff;
+  display: block;
+}
